@@ -1,11 +1,88 @@
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
+
+use rocket::{
+    http::Status,
+    serde::json::{json, Value},
+    Build, Rocket,
+};
+use rocket_okapi::{
+    mount_endpoints_and_merged_docs,
+    rapidoc::{make_rapidoc, GeneralConfig, HideShowConfig, RapiDocConfig},
+    settings::UrlObject,
+    swagger_ui::{make_swagger_ui, SwaggerUIConfig},
+};
+
+mod controllers;
+mod cors;
+mod openapi_spec;
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+async fn index() -> (Status, Value) {
+    (Status::Ok, json!({ "hello": "world"}))
 }
 
-#[launch]
-fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+#[get("/<id>")]
+async fn find(id: i32) -> (Status, Value) {
+    (Status::Ok, json!({ "msg": format!("find {}", id)}))
+}
+
+#[put("/<id>")]
+async fn update(id: i32) -> (Status, Value) {
+    (Status::Ok, json!({ "msg": format!("update {}", id)}))
+}
+
+#[delete("/<id>")]
+async fn delete(id: i32) -> (Status, Value) {
+    (Status::Ok, json!({ "msg": format!("delete {}", id)}))
+}
+
+fn rocket_build() -> Rocket<Build> {
+    let port = 8000;
+
+    let mut building_rocket = rocket::build()
+        .mount(
+            "/swagger/",
+            make_swagger_ui(&SwaggerUIConfig {
+                url: "../openapi.json".to_owned(),
+                ..Default::default()
+            }),
+        )
+        .mount(
+            "/rapidoc/",
+            make_rapidoc(&RapiDocConfig {
+                title: Some("RapiDoc".to_owned()),
+                general: GeneralConfig {
+                    spec_urls: vec![UrlObject::new("General", "../openapi.json")],
+                    ..Default::default()
+                },
+                hide_show: HideShowConfig {
+                    allow_spec_url_load: false,
+                    allow_spec_file_load: false,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        )
+        .attach(cors::run(&port))
+        .mount("/", routes![index, find, update, delete]);
+
+    let openapi_settings = rocket_okapi::settings::OpenApiSettings::default();
+    let custom_route_spec = (vec![], openapi_spec::run(&port));
+    mount_endpoints_and_merged_docs! {
+        building_rocket, "/".to_owned(), openapi_settings,
+        "/" => custom_route_spec,
+        "/ranking" => controllers::get_routes_and_docs(&openapi_settings),
+    };
+
+    building_rocket
+}
+
+#[rocket::main]
+async fn main() {
+    let launch_result = rocket_build().launch().await;
+    match launch_result {
+        Ok(_) => println!("Rocket shut down gracefully."),
+        Err(err) => println!("Rocket had an error: {}", err),
+    };
 }
