@@ -2,6 +2,7 @@
 extern crate rocket;
 
 use dotenvy::dotenv;
+use rocket::fairing::AdHoc;
 use rocket::Config;
 use rocket::{
     http::Status,
@@ -18,6 +19,7 @@ use std::env;
 
 mod controllers;
 mod cors;
+mod database;
 mod openapi_spec;
 
 #[get("/")]
@@ -48,10 +50,6 @@ fn rocket_build() -> Rocket<Build> {
         .parse::<u16>()
         .unwrap();
 
-    let mongo_db_uri = env::var("MONGO_DB_URI").expect("MONGO_DB_URI required");
-
-    print!("{mongo_db_uri}\n {port}\n");
-
     let config = Config {
         port: port.clone(),
         ..Config::debug_default()
@@ -59,6 +57,17 @@ fn rocket_build() -> Rocket<Build> {
 
     let mut building_rocket = rocket::build()
         .configure(config)
+        .attach(AdHoc::on_ignite(
+            "Connect to MongoDB cluster",
+            |rocket| async {
+                match database::mongo_db::connect().await {
+                    Ok(database) => rocket.manage(database),
+                    Err(error) => {
+                        panic!("Cannot connect to MDB instance:: {:?}", error)
+                    }
+                }
+            },
+        ))
         .mount(
             "/swagger/",
             make_swagger_ui(&SwaggerUIConfig {
