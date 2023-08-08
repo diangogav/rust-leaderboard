@@ -1,6 +1,6 @@
 use rocket_okapi::okapi::openapi3::OpenApi;
 
-pub fn run(port: &i32) -> OpenApi {
+pub fn run(port: &u16) -> OpenApi {
     use rocket_okapi::okapi::openapi3::*;
     OpenApi {
         openapi: OpenApi::default_version(),

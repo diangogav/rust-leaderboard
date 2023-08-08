@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate rocket;
 
+use dotenvy::dotenv;
+use rocket::Config;
 use rocket::{
     http::Status,
     serde::json::{json, Value},
@@ -12,6 +14,7 @@ use rocket_okapi::{
     settings::UrlObject,
     swagger_ui::{make_swagger_ui, SwaggerUIConfig},
 };
+use std::env;
 
 mod controllers;
 mod cors;
@@ -38,9 +41,24 @@ async fn delete(id: i32) -> (Status, Value) {
 }
 
 fn rocket_build() -> Rocket<Build> {
-    let port = 8000;
+    dotenv().ok();
+
+    let port = env::var("PORT")
+        .unwrap_or(String::from("8000"))
+        .parse::<u16>()
+        .unwrap();
+
+    let mongo_db_uri = env::var("MONGO_DB_URI").expect("MONGO_DB_URI required");
+
+    print!("{mongo_db_uri}\n {port}\n");
+
+    let config = Config {
+        port: port.clone(),
+        ..Config::debug_default()
+    };
 
     let mut building_rocket = rocket::build()
+        .configure(config)
         .mount(
             "/swagger/",
             make_swagger_ui(&SwaggerUIConfig {
