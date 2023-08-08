@@ -1,20 +1,21 @@
 #[macro_use]
 extern crate rocket;
 
+use dotenvy::dotenv;
+use rocket::fairing::AdHoc;
+use rocket::Config;
 use rocket::{
     http::Status,
     serde::json::{json, Value},
     Build, Rocket,
 };
-use rocket_okapi::{
-    mount_endpoints_and_merged_docs,
-    rapidoc::{make_rapidoc, GeneralConfig, HideShowConfig, RapiDocConfig},
-    settings::UrlObject,
-    swagger_ui::{make_swagger_ui, SwaggerUIConfig},
-};
+use rocket_okapi::mount_endpoints_and_merged_docs;
+use std::env;
 
+mod api_doc;
 mod controllers;
 mod cors;
+mod database;
 mod openapi_spec;
 
 #[get("/")]
@@ -38,32 +39,32 @@ async fn delete(id: i32) -> (Status, Value) {
 }
 
 fn rocket_build() -> Rocket<Build> {
-    let port = 8000;
+    dotenv().ok();
+
+    let port = env::var("PORT")
+        .unwrap_or(String::from("8000"))
+        .parse::<u16>()
+        .unwrap();
+
+    let config = Config {
+        port: port.clone(),
+        ..Config::debug_default()
+    };
 
     let mut building_rocket = rocket::build()
-        .mount(
-            "/swagger/",
-            make_swagger_ui(&SwaggerUIConfig {
-                url: "../openapi.json".to_owned(),
-                ..Default::default()
-            }),
-        )
-        .mount(
-            "/rapidoc/",
-            make_rapidoc(&RapiDocConfig {
-                title: Some("RapiDoc".to_owned()),
-                general: GeneralConfig {
-                    spec_urls: vec![UrlObject::new("General", "../openapi.json")],
-                    ..Default::default()
-                },
-                hide_show: HideShowConfig {
-                    allow_spec_url_load: false,
-                    allow_spec_file_load: false,
-                    ..Default::default()
-                },
-                ..Default::default()
-            }),
-        )
+        .configure(config)
+        .attach(AdHoc::on_ignite(
+            "Connect to MongoDB cluster",
+            |rocket| async {
+                match database::mongo_db::connect().await {
+                    Ok(database) => rocket.manage(database),
+                    Err(error) => {
+                        panic!("Cannot connect to MDB instance:: {:?}", error)
+                    }
+                }
+            },
+        ))
+        .attach(api_doc::run())
         .attach(cors::run(&port))
         .mount("/", routes![index, find, update, delete]);
 
