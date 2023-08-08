@@ -9,14 +9,10 @@ use rocket::{
     serde::json::{json, Value},
     Build, Rocket,
 };
-use rocket_okapi::{
-    mount_endpoints_and_merged_docs,
-    rapidoc::{make_rapidoc, GeneralConfig, HideShowConfig, RapiDocConfig},
-    settings::UrlObject,
-    swagger_ui::{make_swagger_ui, SwaggerUIConfig},
-};
+use rocket_okapi::mount_endpoints_and_merged_docs;
 use std::env;
 
+mod api_doc;
 mod controllers;
 mod cors;
 mod database;
@@ -68,29 +64,7 @@ fn rocket_build() -> Rocket<Build> {
                 }
             },
         ))
-        .mount(
-            "/swagger/",
-            make_swagger_ui(&SwaggerUIConfig {
-                url: "../openapi.json".to_owned(),
-                ..Default::default()
-            }),
-        )
-        .mount(
-            "/rapidoc/",
-            make_rapidoc(&RapiDocConfig {
-                title: Some("RapiDoc".to_owned()),
-                general: GeneralConfig {
-                    spec_urls: vec![UrlObject::new("General", "../openapi.json")],
-                    ..Default::default()
-                },
-                hide_show: HideShowConfig {
-                    allow_spec_url_load: false,
-                    allow_spec_file_load: false,
-                    ..Default::default()
-                },
-                ..Default::default()
-            }),
-        )
+        .attach(api_doc::run())
         .attach(cors::run(&port))
         .mount("/", routes![index, find, update, delete]);
 
