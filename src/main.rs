@@ -12,11 +12,11 @@ use rocket::{
 use rocket_okapi::mount_endpoints_and_merged_docs;
 use std::env;
 
-mod api_doc;
+mod api;
 mod controllers;
-mod cors;
 mod database;
-mod openapi_spec;
+
+use api::{api_doc, cors, openapi_spec};
 
 #[get("/")]
 async fn index() -> (Status, Value) {
