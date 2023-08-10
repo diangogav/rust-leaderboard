@@ -15,6 +15,7 @@ use std::env;
 mod api;
 mod controllers;
 mod database;
+mod modules;
 
 use api::{api_doc, cors, openapi_spec};
 
