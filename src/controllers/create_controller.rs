@@ -1,4 +1,3 @@
-use mongodb::bson::oid::ObjectId;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::serde::Deserialize;
@@ -8,8 +7,9 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 use rocket_okapi::openapi;
 use serde::Serialize;
 
-use crate::database::models::mongo_message::MongoMessage;
 use crate::database::mongo_db::MongoDB;
+use crate::modules::message::domain::{Message, MessageRepository};
+use crate::modules::message::infrastructure::MongodbMessageRepository;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CreateRequest {
@@ -18,7 +18,7 @@ pub struct CreateRequest {
 
 #[derive(Serialize, JsonSchema)]
 pub struct CreateResponse {
-    msg: String,
+    id: String,
 }
 
 #[openapi(tag = "Ranking")]
@@ -27,17 +27,12 @@ pub async fn handle(
     connection: &State<MongoDB>,
     request: Json<CreateRequest>,
 ) -> Result<Json<CreateResponse>, Status> {
-    let new_message = MongoMessage {
-        _id: ObjectId::new(),
-        content: request.content.clone(),
-    };
+    let repository = MongodbMessageRepository { connection };
 
-    let user_collection = connection.database.collection::<MongoMessage>("messages");
+    let message = Message::create(request.content.clone());
 
-    return match user_collection.insert_one(&new_message, None).await {
-        Ok(_) => Ok(Json(CreateResponse {
-            msg: new_message.content,
-        })),
+    return match repository.save(message.clone()).await {
+        Ok(id) => Ok(Json(CreateResponse { id })),
         Err(_) => Err(Status::InternalServerError),
     };
 }
