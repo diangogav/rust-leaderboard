@@ -1,1 +1,1 @@
-pub mod mongo_message;
+pub mod mongo_leaderboard;
