@@ -74,7 +74,7 @@ fn rocket_build() -> Rocket<Build> {
     mount_endpoints_and_merged_docs! {
         building_rocket, "/".to_owned(), openapi_settings,
         "/" => custom_route_spec,
-        "/ranking" => controllers::get_routes_and_docs(&openapi_settings),
+        "/leaderboard" => controllers::get_routes_and_docs(&openapi_settings),
     };
 
     building_rocket
