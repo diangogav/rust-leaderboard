@@ -1,6 +1,7 @@
 use crate::database;
 use database::models::mongo_leaderboard::MongoLeaderboard;
 use database::mongo_db::MongoDB;
+use mongodb::bson::doc;
 use rocket::http::Status;
 
 use super::domain::{Leaderboard, LeaderboardRepository};
@@ -33,5 +34,20 @@ impl LeaderboardRepository for MongodbLeaderboardRepository<'_> {
             Ok(_) => Ok(new_leaderboard.id.to_string()),
             Err(_) => Err(Status::InternalServerError),
         };
+    }
+
+    async fn find(&self, name: String) -> Option<Leaderboard> {
+        let filter = doc! { "name": name };
+        let options = mongodb::options::FindOneOptions::builder().build();
+
+        if let Ok(result) = self.get_collection().find_one(filter, options).await {
+            if let Some(document) = result {
+                return Some(Leaderboard::create(document.id, document.name));
+            } else {
+                return None;
+            }
+        }
+
+        return None;
     }
 }
