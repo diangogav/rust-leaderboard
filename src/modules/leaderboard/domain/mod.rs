@@ -15,4 +15,5 @@ impl Leaderboard {
 #[async_trait]
 pub trait LeaderboardRepository {
     async fn save(&self, leaderboard: Leaderboard) -> Result<String, Status>;
+    async fn find(&self, name: String) -> Option<Leaderboard>;
 }

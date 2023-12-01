@@ -39,6 +39,14 @@ async fn delete(id: i32) -> (Status, Value) {
     (Status::Ok, json!({ "msg": format!("delete {}", id)}))
 }
 
+#[catch(404)]
+fn not_found() -> Value {
+    json!({
+        "status": "error",
+        "reason": "Resource was not found."
+    })
+}
+
 fn rocket_build() -> Rocket<Build> {
     dotenv().ok();
 
@@ -67,6 +75,7 @@ fn rocket_build() -> Rocket<Build> {
         ))
         .attach(api_doc::run())
         .attach(cors::run(&port))
+        .register("/", catchers![not_found])
         .mount("/", routes![index, find, update, delete]);
 
     let openapi_settings = rocket_okapi::settings::OpenApiSettings::default();
