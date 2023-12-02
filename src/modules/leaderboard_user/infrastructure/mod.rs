@@ -2,9 +2,9 @@ use crate::database;
 use database::models::mongo_leaderboard_user::MongoLeaderboardUser;
 use database::mongo_db::MongoDB;
 use mongodb::bson::doc;
-use rocket::http::Status;
+use rocket::{futures::StreamExt, http::Status};
 
-use super::domain::{LeaderboardUser, LeaderboardUserRepository};
+use super::domain::{LeaderboardUser, LeaderboardUserDto, LeaderboardUserRepository};
 
 pub struct MongodbLeaderboardUserRepository<'a> {
     pub connection: &'a MongoDB,
@@ -65,5 +65,36 @@ impl LeaderboardUserRepository for MongodbLeaderboardUserRepository<'_> {
         }
 
         return None;
+    }
+
+    async fn get(&self, leaderboard_id: String) -> Vec<LeaderboardUserDto> {
+        let filter = doc! { "leaderboard_id": leaderboard_id };
+        let options = mongodb::options::FindOptions::builder()
+            .sort(doc! { "points": -1, "wins": -1 })
+            .limit(50)
+            .build();
+
+        let mut cursor = self.get_collection().find(filter, options).await.unwrap();
+        let mut leaderboard_users = Vec::new();
+
+        while let Some(result) = cursor.next().await {
+            match result {
+                Ok(document) => {
+                    let leaderboard_user = LeaderboardUser::create(
+                        document.id,
+                        document.leaderboard_id,
+                        document.username,
+                        document.wins,
+                        document.losses,
+                        document.points,
+                    );
+
+                    leaderboard_users.push(leaderboard_user.to_presentation());
+                }
+                Err(_error) => {}
+            }
+        }
+
+        leaderboard_users
     }
 }
