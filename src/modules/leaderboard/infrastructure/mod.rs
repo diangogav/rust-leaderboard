@@ -1,10 +1,9 @@
+use super::domain::{Leaderboard, LeaderboardRepository};
 use crate::database;
 use database::models::mongo_leaderboard::MongoLeaderboard;
 use database::mongo_db::MongoDB;
 use mongodb::bson::doc;
 use rocket::http::Status;
-
-use super::domain::{Leaderboard, LeaderboardRepository};
 
 pub struct MongodbLeaderboardRepository<'a> {
     pub connection: &'a MongoDB,
