@@ -97,4 +97,19 @@ impl LeaderboardUserRepository for MongodbLeaderboardUserRepository<'_> {
 
         leaderboard_users
     }
+
+    async fn get_position(&self, leaderboard_user: LeaderboardUser) -> Option<u64> {
+        let filter = doc! {
+            "leaderboard_id": leaderboard_user.leadboard_id,
+            "$or": [
+                { "points": { "$gt": leaderboard_user.points } },
+                { "points": leaderboard_user.points, "wins": { "$gt": leaderboard_user.wins } },
+            ],
+        };
+
+        match self.get_collection().count_documents(filter, None).await {
+            Ok(position) => Some(position + 1),
+            Err(_error) => None,
+        }
+    }
 }

@@ -64,4 +64,5 @@ pub trait LeaderboardUserRepository {
     async fn save(&self, leaderboard_user: LeaderboardUser) -> Result<(), Status>;
     async fn find(&self, username: String, leaderboard_id: String) -> Option<LeaderboardUser>;
     async fn get(&self, leaderboard_id: String) -> Vec<LeaderboardUserDto>;
+    async fn get_position(&self, leaderboard_user: LeaderboardUser) -> Option<u64>;
 }
