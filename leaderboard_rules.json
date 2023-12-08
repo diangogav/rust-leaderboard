@@ -1,0 +1,92 @@
+[
+  {
+    "name": "A",
+    "min_position": 1,
+    "max_position": 10,
+    "score_per_win": 1,
+    "score_per_defeat": 10,
+    "bonus_per_win": 10,
+    "punishment_per_defeat": 1
+  },
+  {
+    "name": "B",
+    "min_position": 11,
+    "max_position": 20,
+    "score_per_win": 2,
+    "score_per_defeat": 9,
+    "bonus_per_win": 9,
+    "punishment_per_defeat": 2
+  },
+  {
+    "name": "C",
+    "min_position": 21,
+    "max_position": 30,
+    "score_per_win": 3,
+    "score_per_defeat": 8,
+    "bonus_per_win": 8,
+    "punishment_per_defeat": 3
+  },
+  {
+    "name": "D",
+    "min_position": 31,
+    "max_position": 40,
+    "score_per_win": 4,
+    "score_per_defeat": 7,
+    "bonus_per_win": 7,
+    "punishment_per_defeat": 4
+  },
+  {
+    "name": "E",
+    "min_position": 41,
+    "max_position": 50,
+    "score_per_win": 5,
+    "score_per_defeat": 6,
+    "bonus_per_win": 6,
+    "punishment_per_defeat": 5
+  },
+  {
+    "name": "F",
+    "min_position": 51,
+    "max_position": 60,
+    "score_per_win": 6,
+    "score_per_defeat": 5,
+    "bonus_per_win": 5,
+    "punishment_per_defeat": 6
+  },
+  {
+    "name": "E",
+    "min_position": 61,
+    "max_position": 70,
+    "score_per_win": 7,
+    "score_per_defeat": 4,
+    "bonus_per_win": 4,
+    "punishment_per_defeat": 7
+  },
+  {
+    "name": "H",
+    "min_position": 71,
+    "max_position": 80,
+    "score_per_win": 8,
+    "score_per_defeat": 3,
+    "bonus_per_win": 3,
+    "punishment_per_defeat": 8
+  },
+  {
+    "name": "I",
+    "min_position": 81,
+    "max_position": 90,
+    "score_per_win": 9,
+    "score_per_defeat": 2,
+    "bonus_per_win": 2,
+    "punishment_per_defeat": 9
+  },
+  {
+    "name": "J",
+    "min_position": 91,
+    "max_position": 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368,
+    "score_per_win": 10,
+    "score_per_defeat": 1,
+    "bonus_per_win": 1,
+    "punishment_per_defeat": 10
+  }
+]
